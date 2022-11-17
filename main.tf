@@ -9,7 +9,7 @@ resource "aws_subnet" "PublicSubnet" {
   }
 }
 resource "aws_ecs_cluster" "foo" {
-  name = "white-hart"
+  name = "new"
 
 }
 resource "aws_ecs_task_definition" "hello_world" {
