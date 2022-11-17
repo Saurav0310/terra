@@ -1,40 +1,44 @@
 name: "Terraform Deployment"
-
 on:
+  # Manual trigger
+  workflow_dispatch:
   push:
     branches:
       - main
-
+  pull_request:
+    branches: [ main ]
+defaults:
+  run:
+    shell: bash
 jobs:
   terraform:
-    name: "Terraform" 
+    name:  "Terraform"
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+         include:
+           - environment: test
+             runner: ubuntu-latest
     env:
          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         AWS_REGION: 'us-east-1'
-
+         AWS_DEFAULT_REGION: us-east-2
     steps:
-      - name: Checkout
       - uses: actions/checkout@v2
-
-      - name: Setup Terraform
-      - uses: hashicorp/setup-terraform@v1     
-
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
       - name: Terraform Init
-        id: Init
-        run: terraform init
-
+        id: init
+        run: |
+           rm -rf .terraform
+           terraform init
       - name: Terraform Plan
-        id: Plan
-        if: github.event_name == 'push'
-        run: terraform plan -no-color
-        continue-on-error: true
-
-      - name: Terraform Plan Status
-        if: step.plan.outcome == 'faliure'
-        run: exit 1
-
-      - name: Terraform apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
+        id: plan
+        run: |
+          terraform plan 
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        id: apply
+        run: terraform apply -auto-approve 
