@@ -10,4 +10,5 @@ terraform {
 # Configure the AWS Provider
 provider "aws" {
   region = "us-east-1"
+  role_arn=arn:aws:iam::081394210166:role/adminrole
 }
